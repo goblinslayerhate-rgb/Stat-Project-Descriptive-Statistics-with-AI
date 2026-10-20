@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Descriptive Statistics Lab</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#182230;--muted:#627084;--line:#dce4ee;--blue:#2459d3;--blue2:#eaf0ff;--green:#147d64;--orange:#b45a15}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:linear-gradient(120deg,#183b8c,#3478e5);color:white;padding:30px 20px 34px}
+.wrap{max-width:1100px;margin:auto}h1{margin:0 0 8px;font-size:clamp(1.8rem,4vw,2.5rem)}header p{margin:0;color:#e5edff;max-width:750px}
+main{max-width:1100px;margin:22px auto;padding:0 16px 40px;display:grid;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 5px 18px #193b6810}
+h2{font-size:1.15rem;margin:0 0 14px}label{display:block;font-weight:650;margin-bottom:7px}
+textarea,input,select{font:inherit;border:1px solid #c8d3e1;border-radius:10px;padding:10px 12px;width:100%;background:white;color:var(--ink)}
+textarea{min-height:88px;resize:vertical}.row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.row>*{flex:1;min-width:150px}
+button{border:0;border-radius:10px;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer;background:var(--blue);color:white}
+button.secondary{background:var(--blue2);color:#2049aa;border:1px solid #cbd8ff}button:hover{filter:brightness(.96)}
+.help{font-size:.9rem;color:var(--muted);margin:8px 0 0}.error{color:#b42318;font-weight:650;margin-top:8px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.metric{background:#f7f9fc;border:1px solid var(--line);border-radius:12px;padding:14px}.metric span{display:block;color:var(--muted);font-size:.88rem}.metric strong{font-size:1.55rem;display:block;overflow-wrap:anywhere}
+.two{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.pill{display:inline-block;background:#eaf7f2;color:#12684f;border-radius:999px;padding:4px 10px;font-size:.85rem;font-weight:750}
+canvas{width:100%;height:300px;display:block}.formula{background:#f7f9fc;border-radius:10px;padding:12px;margin:10px 0}.small{font-size:.92rem;color:var(--muted)}ul{padding-left:20px}footer{text-align:center;color:var(--muted);font-size:.85rem;padding:0 16px 24px}
+@media(max-width:760px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}.card{padding:16px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>Descriptive Statistics Lab</h1>
+<p>Explore a data set, calculate its mean and median, locate a percentile, and visualize the distribution. Use the results to check your math homework.</p>
+</div></header>
+<main>
+<section class="card">
+<h2>1. Enter or generate data</h2>
+<label for="data">Data values (separate numbers with commas or spaces)</label>
+<textarea id="data">2, 4, 4, 6, 9</textarea>
+<div class="row" style="margin-top:10px">
+<div><label for="count">Random data count</label><input id="count" type="number" min="3" max="100" value="12"></div>
+<div><label for="kind">Random data style</label><select id="kind"><option value="mixed">Mixed values</option><option value="right">Right-skewed (mostly low)</option><option value="left">Left-skewed (mostly high)</option><option value="symmetric">Roughly symmetric</option></select></div>
+<div><button id="generate" class="secondary" type="button">Generate random data</button></div>
+<div><button id="calculate" type="button">Calculate statistics</button></div>
+</div>
+<p class="help">Tip: try a small set first so you can verify each answer by hand.</p>
+<div id="error" class="error" role="alert"></div>
+</section>
+
+<section class="card">
+<h2>2. Summary statistics</h2>
+<div class="metrics">
+<div class="metric"><span>Number of values (n)</span><strong id="n">5</strong></div>
+<div class="metric"><span>Mean (average)</span><strong id="mean">5.00</strong></div>
+<div class="metric"><span>Median (middle)</span><strong id="median">4</strong></div>
+<div class="metric"><span>Range</span><strong id="range">7</strong></div>
+</div>
+<p id="sorted" class="small" style="margin-bottom:0">Ordered data: 2, 4, 4, 6, 9</p>
+</section>
+
+<div class="two">
+<section class="card">
+<h2>3. Percentile locator</h2>
+<div class="row">
+<div><label for="percentile">Percentile (0–100)</label><input id="percentile" type="number" min="0" max="100" value="75"></div>
+<div><button id="locate" type="button">Find percentile</button></div>
+</div>
+<div id="percentileResult" aria-live="polite"></div>
+<p class="help">This app uses the nearest-rank method. Your class may use a different percentile formula, so compare with your notes.</p>
+</section>
+<section class="card">
+<h2>4. Distribution shape</h2>
+<div><span id="skewPill" class="pill">Approximately symmetric</span></div>
+<p id="skewText">The mean and median are close together, suggesting little skew.</p>
+<p class="small">This is a simple estimate based on the mean, median, and third standardized moment; small data sets can make skewness hard to judge.</p>
+</section>
+</div>
+
+<section class="card">
+<h2>5. Graph of the data</h2>
+<p class="small">Bars show how often each value appears. Dashed lines mark the mean and median.</p>
+<canvas id="chart" aria-label="Histogram of data with mean and median lines"></canvas>
+<div id="legend" class="small">Mean and median are shown in the graph legend.</div>
+</section>
+
+<section class="card">
+<h2>6. Check the calculations</h2>
+<div id="work"></div>
+</section>
+</main>
+<footer>Descriptive Statistics Lab · Educational demo · Always verify AI-generated calculations with your class methods.</footer>
+<script>
+const $ = id => document.getElementById(id);
+let current = [2,4,4,6,9];
+function parseData(){
+  const raw=$('data').value.trim();
+  if(!raw) throw new Error('Please enter at least one number.');
+  const vals=raw.split(/[,\s;]+/).filter(Boolean).map(Number);
+  if(vals.some(v=>!Number.isFinite(v))) throw new Error('Please use only valid numbers separated by commas or spaces.');
+  if(vals.length>500) throw new Error('Please use 500 values or fewer.');
+  return vals;
+}
+function medianOf(a){
+  const n=a.length, m=Math.floor(n/2);
+  return n%2 ? a[m] : (a[m-1]+a[m])/2;
+}
+function stats(vals){
+  const a=[...vals].sort((x,y)=>x-y), n=a.length;
+  const mean=vals.reduce((s,x)=>s+x,0)/n, med=medianOf(a);
+  const variance=vals.reduce((s,x)=>s+(x-mean)**2,0)/n;
+  const sd=Math.sqrt(variance);
+  const skew=sd===0?0:vals.reduce((s,x)=>s+((x-mean)/sd)**3,0)/n;
+  return {a,n,mean,med,min:a[0],max:a[n-1],range:a[n-1]-a[0],skew};
+}
+function fmt(x){return Number.isInteger(x)?String(x):Number(x).toFixed(2)}
+function render(){
+  try{
+    current=parseData();
+    const s=stats(current);
+    $('error').textContent='';
+    $('n').textContent=s.n;
+    $('mean').textContent=fmt(s.mean);
+    $('median').textContent=fmt(s.med);
+    $('range').textContent=fmt(s.range);
+    $('sorted').textContent='Ordered data: '+s.a.map(fmt).join(', ');
+    let label,desc;
+    if(s.skew>0.5){label='Right-skewed';desc='The distribution has a longer tail toward larger values. The mean is often pulled to the right.'}
+    else if(s.skew < -0.5){label='Left-skewed';desc='The distribution has a longer tail toward smaller values. The mean is often pulled to the left.'}
+    else {label='Approximately symmetric';desc='The data do not show strong skew by this simple measure.'}
+    $('skewPill').textContent=label;
+    $('skewText').textContent=desc+' (skewness estimate: '+fmt(s.skew)+')';
+    $('work').innerHTML='<div class="formula"><b>Mean</b><br>Sum of values ÷ number of values = '+fmt(current.reduce((a,b)=>a+b,0))+' ÷ '+s.n+' = <b>'+fmt(s.mean)+'</b></div>'+
+      '<div class="formula"><b>Median</b><br>Sort the values. '+(s.n%2?'The middle value is ':'Average the two middle values: ')+(s.n%2?fmt(s.med):fmt(s.a[s.n/2-1])+' and '+fmt(s.a[s.n/2])+' → '+fmt(s.med))+' = <b>'+fmt(s.med)+'</b></div>'+
+      '<div class="formula"><b>Range</b><br>Largest − smallest = '+fmt(s.max)+' − '+fmt(s.min)+' = <b>'+fmt(s.range)+'</b></div>';
+    locate(false);
+    drawChart(s);
+  }catch(e){$('error').textContent=e.message}
+}
+function locate(showError=true){
+  try{
+    const vals=parseData(), s=stats(vals);
+    const p=Number($('percentile').value);
+    if(!Number.isFinite(p)||p<0||p>100) throw new Error('Enter a percentile from 0 to 100.');
+    // Nearest-rank convention: rank = ceil(p*n/100), with endpoints clamped to the observed range.
+    const rank=p===0?1:Math.min(s.n,Math.ceil(p*s.n/100));
+    const value=s.a[rank-1];
+    $('percentileResult').innerHTML='<div class="formula"><b>Formula (nearest-rank method)</b><br>Location = ceil((p ÷ 100) × n)<br>Location = ceil(('+fmt(p)+' ÷ 100) × '+s.n+') = <b>'+rank+'</b></div>'+
+      '<p>The '+fmt(p)+'th percentile is at ordered position <b>'+rank+'</b>, which corresponds to the value <b>'+fmt(value)+'</b> in this data set.</p>'+
+      '<p class="small">Interpretation: approximately '+fmt(p)+'% of the data are at or below this percentile under this nearest-rank convention. Percentile conventions can differ.</p>';
+  }catch(e){if(showError)$('error').textContent=e.message}
+}
+function drawChart(s){
+  const canvas=$('chart'), rect=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+  canvas.width=Math.max(300,rect.width*dpr);canvas.height=300*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const W=canvas.width/dpr,H=300,pad={l:45,r:18,t:22,b:45}, pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);ctx.font='12px system-ui';ctx.fillStyle='#627084';ctx.strokeStyle='#dce4ee';ctx.lineWidth=1;
+  const min=s.min,max=s.max;
+  let bins=Math.min(12,Math.max(1,Math.ceil(Math.sqrt(s.n))));
+  if(min===max) bins=1;
+  const span=max-min||1, counts=Array(bins).fill(0);
+  s.a.forEach(v=>{let i=min===max?0:Math.min(bins-1,Math.floor((v-min)/span*bins));counts[i]++});
+  const maxCount=Math.max(...counts,1);
+  for(let i=0;i<=maxCount;i++){
+    const y=pad.t+ph-(i/maxCount)*ph;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+    if(i%Math.max(1,Math.ceil(maxCount/5))===0){ctx.fillStyle='#627084';ctx.textAlign='right';ctx.fillText(i,pad.l-8,y+4)}
+  }
+  const bw=pw/bins;
+  counts.forEach((c,i)=>{const bh=c/maxCount*ph;ctx.fillStyle='#7ca3f6';ctx.fillRect(pad.l+i*bw+2,pad.t+ph-bh,Math.max(1,bw-4),bh)});
+  const xFor=v=>pad.l+((v-min)/(max-min||1))*pw;
+  function marker(v,color,name,yLabel){
+    const x=xFor(v);ctx.save();ctx.strokeStyle=color;ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ph);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=color;ctx.textAlign=(x>W-95?'right':x<80?'left':'center');ctx.font='bold 12px system-ui';ctx.fillText(name+' '+fmt(v),x,yLabel);ctx.restore();
+  }
+  marker(s.mean,'#d34b36','Mean',13);marker(s.med,'#147d64','Median',28);
+  ctx.fillStyle='#627084';ctx.textAlign='center';ctx.font='12px system-ui';
+  ctx.fillText(fmt(min),pad.l,H-18);ctx.fillText(fmt(max),W-pad.r,H-18);ctx.fillText('Data value',W/2,H-3);
+  $('legend').textContent='Mean = '+fmt(s.mean)+' (red) · Median = '+fmt(s.med)+' (green). Bars show counts across value intervals.';
+}
+$('calculate').addEventListener('click',render);
+$('locate').addEventListener('click',()=>locate(true));
+$('generate').addEventListener('click',()=>{
+  const n=Math.max(3,Math.min(100,Math.floor(Number($('count').value)||12)));
+  const kind=$('kind').value;let vals=[];
+  for(let i=0;i<n;i++){
+    let v;
+    if(kind==='right') v=Math.round(1+Math.pow(Math.random(),2.5)*49);
+    else if(kind==='left') v=Math.round(1+(1-Math.pow(Math.random(),2.5))*49);
+    else if(kind==='symmetric') v=Math.max(1,Math.min(50,Math.round(25+(Math.random()+Math.random()+Math.random()+Math.random()-2)*9)));
+    else v=Math.floor(Math.random()*50)+1;
+    vals.push(v);
+  }
+  $('data').value=vals.join(', ');render();
+});
+window.addEventListener('resize',()=>{try{drawChart(stats(parseData()))}catch(e){}});
+render();
+</script>
+</body>
+</html>
